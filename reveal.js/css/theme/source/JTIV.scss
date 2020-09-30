@@ -1,0 +1,152 @@
+/**
+ * Personal theme for reveal.js. This is the opposite of the 'black' theme.
+ *
+ * By Hakim El Hattab, http://hakim.se
+ */
+
+
+// Default mixins and settings -----------------
+@import "../template/mixins";
+@import "../template/settings";
+// ---------------------------------------------
+
+
+// Include theme-specific fonts
+@import url(../../lib/font/source-sans-pro/source-sans-pro.css);
+
+
+// Override theme settings (see ../template/settings.scss)
+$backgroundColor: #DEDEE6;
+
+$mainColor: #222;
+$headingColor: #222;
+
+$mainFontSize: 42px;
+$mainFont: "Raleway", sans-seriff;
+$headingFont: "Raleway", sans-serif;
+$headingTextShadow: none;
+$headingLetterSpacing: normal;
+$headingTextTransform: none;
+$headingFontWeight: 500;
+$headingLineHeight:1.2;
+$headingTexAlign: left;
+
+$linkColor: #2a76dd;
+$linkColorHover: lighten( $linkColor, 15% );
+$selectionBackgroundColor: lighten( $linkColor, 25% );
+
+$heading1Size: 2.5em;
+$heading2Size: 1.6em;
+$heading3Size: 1.3em;
+$heading4Size: 1.0em;
+
+section.has-dark-background {
+	&, h1, h2, h3, h4, h5, h6 {
+		color: #FFFAFA;
+	}
+}
+
+/*********************************************
+ * GLOBAL STYLES bits of these styles come from
+ reveald3 css file custom-gc.css. credit for these
+ parts document belongs  gc creator of reveald3.
+ Copyright is in the node modules directory
+ *********************************************/
+
+body section img {
+	background: none !important;
+	margin-top: 0 !important;
+	border:none !important;
+	box-shadow:none !important;
+}
+/*********************************************
+* TRANSITIONS
+*********************************************/
+
+/*Workaround to get back correct behavior
+of none-in and none-out*/
+
+section[data-transition*="none-out"].present,
+section[data-transition*="none-out"].past {
+	transition-duration: 0s !important;
+}
+section[data-transition*="none-in"].future,
+section[data-transition*="none-in"].present {
+	transition-duration: 0s !important;
+}
+.reveal .slides section .fragment.step-fade-in-then-out {
+	opacity: 0;
+	display: none; }
+
+.reveal .slides section .fragment.step-fade-in-then-out.current-fragment {
+	opacity: 1;
+	display: inline; }
+
+/*********************************************
+* SPECIAL SLIDE CLASSES
+*********************************************/
+
+.title-slide {
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	width: 100%;
+	/*background: #7396a1;*/
+}
+
+.title-slide.fullwidth div{
+	width: 100%;
+}
+
+.reveal p,
+.reveal div p {
+	text-align: left;
+	font-size: 0.7em;
+}
+.reveal ul,
+.reveal div ul,
+.reveal p ul {
+	font-size: 0.5em;
+}
+section .row:before,
+section .row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+section .row {
+	margin: 0.15em 0em;
+}
+section .row *[class*='col-'] {
+	box-sizing: border-box;
+	position: relative;
+	left: 0;
+	float: left;
+	min-height: 1px;
+	padding: 0em 0.15em;
+}
+@for $i from 1 through 100 {
+	.col-#{$i} {width:percentage($i/100);}
+}
+/*for tables*/
+td {
+	font-size: 0.4em !important;
+	text-align: center !important;
+}
+th {
+	font-size: 0.5em !important;
+	text-align: center !important;
+}
+/*Courtesy of trevor beford*/
+.citation {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	z-index: 100;
+	font-size: 0.5em !important;
+}
+// Theme template ------------------------------
+@import "../template/theme";
+// ---------------------------------------------

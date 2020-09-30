@@ -1,0 +1,99 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>super cool talk</title>
+
+		<link rel="stylesheet" href="reveal.js/css/reset.css">
+		<link rel="stylesheet" href="reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="reveal.js/css/theme/JTIV.css">
+<!--		<link rel="stylesheet" href="reveal.js/css/theme/custom-gc.css" />-->
+
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="reveal.js/lib/css/monokai.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal.js/css/print/pdf.css' : 'reveal.js/css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section class="title-slide">
+				<div>
+				<h6>My title</h6>
+				<p>JT McCrone <br/>Andrew Rambaut group <br/>University of Edinburgh</p>
+				</div>
+				</section>
+
+
+				<section>
+						<h5>Thank you</h5>
+					<div class="row">
+						<div class="col-50">
+							<img src="figures/images/labtex.svg"/>
+						</div>
+						<div class="col-50">
+							<img src="figures/images/labPic.jpeg"/>
+						</div>
+					</div>
+					<div class="row">
+<!--						<div class="col-30">-->
+<!--							<img src="figures/images/UE.jpg"/>-->
+<!--						</div>-->
+<!--						<div class="col-30">-->
+<!--							<img src="figures/images/UE.jpg"/>-->
+<!--						</div>-->
+						<div class="col-30">
+							<img src="figures/images/wellcome-logo-red-small.png"/>
+						</div>
+
+
+					</div>
+				</section>
+
+
+			</div>
+		</div>
+
+		<script src="reveal.js/js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				viewDistance: 3, // to lazy load iframes
+				// The "normal" size of the presentation, aspect ratio will be preserved
+				// when the presentation is scaled to fit different resolutions. Can be
+				// specified using percentage units.
+				width: 960,
+				height: 700,
+				// width: "100%",
+				// height: "100%",
+				// Factor of the display size that should remain empty around the content
+				margin: 0.1,
+
+				// // Bounds for smallest/largest possible scale to apply to content
+				// minScale: 0.5,
+				// maxScale: 1.5,
+
+				dependencies: [
+					{ src: 'reveal.js/plugin/math/math.js', async: true },
+					{ src: 'reveal.js/plugin/markdown/marked.js' },
+					{ src: 'reveal.js/plugin/markdown/markdown.js' },
+					{ src: 'reveal.js/plugin/notes/notes.js', async: true },
+					{ src: 'reveal.js/plugin/highlight/highlight.js', async: true },
+					{ src: './reveald3.js' }
+				]
+			});
+		</script>
+	</body>
+</html>
