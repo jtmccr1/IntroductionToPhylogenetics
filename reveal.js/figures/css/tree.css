@@ -1,0 +1,75 @@
+.branch .branch-path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/*["#4e79a7","#f28e2c","#e15759","#76b7b2","#59a14f","#edc949","#af7aa1","#ff9da7","#9c755f","#bab0ab"]*/
+.excluded-true .node-shape{
+    fill: #f28e2c;
+}
+.special-true .node-shape{
+    fill: #f28e2c;
+}
+
+.node{
+    cursor:pointer;
+}
+
+.node text{
+    font-family: "helvetica-neue",  "helvetica",  "sans-serif";
+    font-size: 10pt;
+    font-weight: 300;
+    background-color: antiquewhite;
+
+}
+
+.node.hovered text{
+    display:inline;
+    font-weight: bold;
+}
+
+
+.axis text {
+    font-family: "helvetica-neue",  "helvetica",  "sans-serif";
+    font-size: 18pt;
+    font-weight: 300;
+}
+
+.axis-label text {
+    font-family: "helvetica-neue",  "helvetica",  "sans-serif";
+    font-size: 18pt;
+    font-weight: bold;
+}
+
+.node-label.support {
+    font-size: 10pt;
+}
+
+.branch-label.length {
+    /*display: none;*/
+    font-size: 8pt;
+}
+.original-root .node-shape{
+    fill: #e31e58;
+    opacity: 0.4;
+}
+
+
+
+.legend text{
+font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight: 300;
+}
+
+
+#tooltip {
+    background: #F6EECA;
+    border: 1px solid #005C68;
+    color: #005C68;
+    border-radius: 5px;
+    padding: 5px;
+    font-family: "helvetica-neue",  "helvetica",  "sans-serif";
+    font-size: 12pt;
+    font-weight: 300;
+}

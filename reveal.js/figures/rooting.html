@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./js/d3.js"></script>
+    <link rel="stylesheet" href="./css/tree.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+</head>
+
+<style>
+    body {
+        font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        font-weight: 100;
+        font-size: 2em;
+    }
+    table {
+        border-collapse: collapse;
+    }
+
+    table td.highlight{
+        border-right: 4px solid #e15759;
+        border-left: 4px solid #e15759;
+
+    }
+    .branch.hovered path{
+        stroke-width:4;
+    }
+
+
+    .hidden{
+        display:none;
+    }
+
+</style>
+<body style="background-color: transparent;">
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <svg id="phylogram_1a"   height="400" width="250" ></svg>
+        </div>
+        <div class="col-sm-4">
+            <svg id="phylogram_1b"   height="400" width="250"></svg>
+        </div>
+        <div class="col-sm-4">
+            <svg id="phylogram_1c"  height="400" width="300"></svg>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+
+    import {Tree,FigTree,nodes,equalAngleLayout,nodeBackground,circle,roughCircle,branches,branch,tipLabel,internalNodeLabel,label,
+        branchLabel, axis,scaleBar,legend,rectangle,axisBars,roughBranch,rootToTipLayout,rectangularLayout}  from "./js/figtree.esm.js";
+    import {baseTimeTree,regionalScale,customDateFormat} from "./js/utilities.js";
+
+    const tree= Tree.parseNewick("((3_2000[&location=FL,text='(3)']:0.5,2_2002[&location=FL,text='(2)']:1)[&location='[NY,FL]']:1.0,1_1997[&location=NY,text='(1)']:1);",{datePrefix: "_"});
+
+    const  margin={top:50,
+        bottom:60,
+        left:50,
+        right:60};
+    const unRootedFig = new FigTree(document.getElementById("phylogram_1a"),{...margin,left:10},tree)
+        .layout(equalAngleLayout(tree.externalNodes[0]))
+        .nodes(
+            circle()
+                .attr("fill",d=>d.degree>1?d.id===tree.root.id? "#f28e2c":"steelblue":"#c71585")
+                .attr("r",d=>d.annotations.hovered?10:5)
+                .rotateOnClick()
+                .annotateOnHover("hovered"),
+            tipLabel(d=>d.name)
+        )
+        .nodeBackgrounds(
+            circle()
+                .attr("r",7)
+        )
+        .branches(
+            branch()
+                .curve(d3.curveBasis)
+                .hilightOnHover()
+                .reRootOnClick("euclidean")
+        );
+function makeRootedFig(){
+   const rootedFig  = new FigTree(document.getElementById("phylogram_1b"),{...margin,left:20,right:60},tree)
+        .layout(rectangularLayout)
+        .nodes(
+            circle()
+                .attr("fill",d=>d.degree>1?d.id===tree.root.id? "#f28e2c":"steelblue":"#c71585")
+                .attr("r",d=>d.annotations.hovered?10:5)
+                .rotateOnClick()
+                .annotateOnHover("hovered"),
+            tipLabel(d=>d.name)
+        )
+        .nodeBackgrounds(
+            circle()
+                .attr("r",7)
+        )
+        .branches(
+            branch()
+                .hilightOnHover()
+        )
+       .feature(
+           axis()
+               .location("bottom")
+               .y(400-margin.top-margin.bottom+5)
+               .x(0)
+               .title({text:"Divergence",
+                   yPadding:30})
+
+       );
+    }
+   function makeRTT() {
+       const rootToTipPlot = new FigTree(document.getElementById("phylogram_1c"), {
+           ...margin,
+           left: 100,
+           right: 10
+       }, tree)
+           .layout(rootToTipLayout())
+           .nodes(
+               circle()
+                   .filter(d => !d.children)
+                   .attr("fill", d => d.degree > 1 ? d.id === tree.root.id ? "#f28e2c" : "steelblue" : "#c71585")
+                   .attr("r", d => d.annotations.hovered ? 10 : 5)
+                   .annotateOnHover("hovered"),
+           )
+           .nodeBackgrounds(
+               circle()
+                   .attr("r", 7)
+           )
+           .branches(
+               branch()
+                   .curve(d3.curveBasis)
+                   .hilightOnHover()
+           )
+           .feature(
+               axis()
+                   .location("bottom")
+                   .y(400 - margin.top - margin.bottom + 5)
+                   .x(0)
+                   .title({
+                       text: "Date",
+                       yPadding: 30
+                   })
+                   .ticks(2)
+                   .tickFormat(d3.format(".0f"))
+           )
+           .feature(
+               axis()
+                   .location("left")
+                   .y(0)
+                   .x(0)
+                   .title({
+                       text: "Divergence",
+                       xPadding: -70,
+                       rotation: -90
+                   })
+                   .tickFormat(d3.format(".1f"))
+                   .ticks(4)
+           )
+
+   }
+    // d3.select("#phylogram_1b").classed("hidden",true)
+    // d3.select("#phylogram_1c").classed("hidden",true)
+
+    window._transitions = [{
+       transitionForward:()=>{
+         makeRootedFig();
+       },
+        transitionBackward:()=>{
+            d3.select("#phylogram_1b").selectAll("g").remove();
+
+        }
+    },{
+
+        transitionForward:()=>{
+            makeRTT();
+    },
+        transitionBackward:()=>{
+        d3.select("#phylogram_1c").selectAll("g").remove();
+
+    }
+    }];
+</script>
+
+</body>
+</html>

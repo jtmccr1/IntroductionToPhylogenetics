@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./js/d3.js"></script>
+    <script src="./js/d3-selection-multi.min.js"></script>
+    <link rel="stylesheet" href="./css/tree.css">
+</head>
+
+<style>
+    .shown{
+        display:inline;
+    }
+</style>
+<body>
+
+<script type="module">
+    import {Tree,rectangularLayout,CircleBauble,FigTree,BaubleManager,Branch,
+        nodes,nodeBackground,circle,roughCircle,branches,branch,tipLabel,internalNodeLabel,label,
+        branchLabel, axis,scaleBar,legend,rectangle,axisBars,roughBranch}  from "./js/figtree.esm.js";
+    import {baseTimeTree,regionalScale,customDateFormat} from "./js/utilities.js";
+
+    const ratio = 1600/700;
+    const width = 1600,
+        height = width/ratio;
+
+
+    const svg =  d3.select("body")
+        .append("svg")
+        .attr("class","figure")
+        .attr("id","example-plot")
+        // .attr("width",width)
+        // .attr("height",height)
+        .attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", `0 0 ${width} ${height}`);
+
+
+    const  margins={top:50,
+        bottom:150,
+        left:10,
+        right:50};
+
+    const annotateHover=(nodes)=>{
+        console.log(nodes)
+        nodes.forEach(node=>{
+            baseTimeTree.annotateNode(node,{hover:!node.annotations.hover});
+        });
+        baseTimeTree.treeUpdateCallback()
+    };
+
+    const figtree = new FigTree(document.getElementById("example-plot"),margins,baseTimeTree,{width,height});
+    const roughBranches = roughBranch().attr("stroke-width",2)
+    const roughNodes = roughCircle()
+        .filter(d=>d.degree===1)
+        .radius(20)
+        .fillAttr("stroke","black")
+        .strokeAttr("fill",d=>d.degree===1?regionalScale(d.annotations.region):"none")
+    figtree
+        .layout(rectangularLayout)
+        .nodes(roughNodes)
+        .nodeBackgrounds(
+            circle()
+                .attr("r",25)
+                .attr("stroke-width",4)
+                .attr("stroke","black")
+                .attr("fill","none")
+                .attr("display", d=>d.annotations.hover? "inline":"none")
+        )
+
+
+    window._transitions = [
+        {
+            transitionForward: () => {
+                figtree.branches(roughBranches);
+                roughNodes.filter(d=>true);
+                figtree.update()
+            }
+        },
+        {
+            transitionForward: () => {
+              annotateHover(baseTimeTree.externalNodes)
+            }
+        },
+        {
+            transitionForward: () => {
+                annotateHover(baseTimeTree.nodes)
+            }
+        },
+        {
+            transitionForward: () => {
+                annotateHover(baseTimeTree.internalNodes) // remove circles on internal nodes
+                //diplay axis
+                const thisHeight = figtree.scales.height;
+                console.log(figtree.scales.x.range)
+                const bottomAxis=axis()
+                    .location("bottom")
+                    .y(thisHeight-margins.bottom)
+                    .x(0)
+                    .title({text:"",
+                        yPadding:30})
+                    // .reverse()
+                     .ticks(10)
+                    .scale(d3.scaleLinear().domain([2019.98,2020.46]).range([0,width-margins.left-margins.right]))
+                    .tickFormat(customDateFormat('%b-%d'));
+                figtree.feature(bottomAxis);
+                figtree.feature(axisBars(bottomAxis));
+            }
+        },
+        {
+            transitionForward: () => {
+                roughBranches.attr("stroke",e=>regionalScale(e.v1.annotations.region));
+                roughNodes.strokeAttr("fill",d=>regionalScale(d.annotations.region))
+                figtree.update()},
+        }
+
+    ]
+
+</script>
+
+</body>
+</html>

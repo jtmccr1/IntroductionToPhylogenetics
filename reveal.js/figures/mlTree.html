@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./js/d3.js"></script>
+    <link rel="stylesheet" href="./css/tree.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+</head>
+
+<style>
+    body {
+        font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        font-weight: 100;
+        font-size: 2em;
+    }
+    table {
+        border-collapse: collapse;
+    }
+
+    table td.highlight{
+        border-right: 4px solid #e15759;
+        border-left: 4px solid #e15759;
+
+    }
+    #alignment td{
+        width:70px;
+        height:70px;
+    }
+    #rawDistance td{
+        width:50px;
+        height:50px;
+        overflow: auto;
+    }
+    #patristicDistance td{
+        width:50px;
+        height:50px;
+    }
+
+    .hidden{
+        display:none;
+    }
+
+
+</style>
+<body style="background-color: transparent;">
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+
+<div class="container">
+    <div class="row  align-items-center">
+        <div class="col-sm" id="base-matrix">
+            <div id="transition-matrix"></div>
+        </div>
+        <div class="col-sm hidden" id="location-matrix">
+            <div id="transition-location" ></div>
+        </div>
+        <div class="col-sm">
+            <div id="alignment"></div>
+        </div>
+    </div>
+    <div class="row  align-items-center">
+        <div class="col-sm">
+            <div id="tree" class="hidden"></div>
+        </div>
+    </div>
+
+
+</div>
+
+
+
+<script type="module">
+
+
+    import {Tree,rectangularLayout,CircleBauble,FigTree,BaubleManager,Branch,
+        nodes,nodeBackground,circle,roughCircle,branches,branch,tipLabel,internalNodeLabel,label,
+        branchLabel, axis,scaleBar,legend,rectangle,axisBars,roughBranch,equalAngleLayout}  from "./js/figtree.esm.js";
+
+    const seqs = [{id:1,seq:"ATGCACTGC",location:"NY"},{id:2,seq:"ATGTATTGA",location:"FL"},{id:3,seq:"ATGTATTAC",location:"FL"}];
+    const fillScale = d3.scaleOrdinal(d3.schemePastel1).domain(["A","T","C","G"]);
+    const margins = ({top:50,bottom:50,right:50,left:50});
+    const tree= Tree.parseNewick("((3[&location=FL]:1,2[&location=FL]:1)[&location='[NY,FL]']:1.0,1[&location=NY]:1);");
+
+    makeAlignment();
+    makeTransitionMatrix();
+    makeLocationMatrix();
+    const figTree = makeTree();
+    // makeTreeDistance();
+    //-------------- Alignment ------------------
+    function makeAlignment(){
+        const  base = d3.select("body").select("#alignment")
+        const tbl = base.append("table")
+        const thead = tbl.append('thead')
+        const	tbody = tbl.append('tbody');
+        // create a row for each object in the data
+        var rows = tbody.selectAll('tr')
+            .data(seqs)
+            .enter()
+            .append('tr');
+
+        // create a cell in each row for each column
+        var cells = rows.selectAll('td')
+            .data(d=>[d.id,...d.seq.split(""),d.location])
+            .enter()
+            .append('td')
+            .attr("class",(d,i)=> i>seqs[0].seq.length?`column-${i} hidden` :`column-${i}`)
+            .style("text-align","center")
+            .style("background-color",d=> parseInt(d)?"lightgrey":fillScale(d))
+            .text(function (d) { return d; })
+    }
+//Make Transition Matrix
+
+    function makeTransitionMatrix(){
+        const width = 200
+        const margin =50
+        const letterPadding=25
+        const svg = d3.select("#transition-matrix").append('svg').attr('width',width).attr("height",width);
+        const arrowSize = 0.5
+        const markerBoxWidth = arrowSize*10;
+        const markerBoxHeight = arrowSize*10;
+        const refX = markerBoxWidth / 2;
+        const refY = markerBoxHeight / 2;
+        const  arrowPoints = [[0, 0], [0, arrowSize*10], [arrowSize*10, arrowSize*5]];
+
+        const data = [{base:"A",pos:[margin,margin]},
+            {base:"G",pos:[width-margin,margin]},
+            {base:"C",pos:[margin,width-margin]},
+            {base:"T",pos:[width-margin,width-margin]}]
+        const lines = [
+            [[margin+letterPadding,margin],[width-margin-letterPadding,margin]], //A->G
+            [[margin+letterPadding,width-margin],[width-margin-letterPadding,width-margin]], //C->T
+            [[margin,margin+letterPadding],[margin,width-margin-letterPadding]],//A->C
+            [[width-margin,margin+letterPadding],[width-margin,width-margin-letterPadding]],//G->T
+            [[margin+letterPadding,margin+letterPadding],[width-margin-letterPadding,width-margin-letterPadding]],//A->T
+            [[margin+letterPadding,width-margin-letterPadding],[width-margin-letterPadding,margin+letterPadding]]//C->G
+        ];
+
+        svg
+            .append('defs')
+            .append('marker')
+            .attr('id', 'arrow')
+            .attr('viewBox', [0, 0, markerBoxWidth, markerBoxHeight])
+            .attr('refX', refX)
+            .attr('refY', refY)
+            .attr('markerWidth', markerBoxWidth)
+            .attr('markerHeight', markerBoxHeight)
+            .attr('orient', 'auto-start-reverse')
+            .append('path')
+            .attr('d', d3.line()(arrowPoints))
+            .attr('stroke', "none")
+            .attr('fill', d3.schemeTableau10[2]);
+
+
+        svg.selectAll("text")
+            .data(data)
+            .enter().append("text")
+            .attr("text-anchor","middle")
+            .attr("alignment-baseline","middle")
+            .attr("x",d=>d.pos[0])
+            .attr("y",d=>d.pos[1])
+            .text(d=>d.base)
+
+        svg.selectAll(".mutation")
+            .data(lines)
+            .enter().append('path')
+            .attr('d', (d,i)=> d3.line()([d[0],d[1]]))
+            .attr('stroke', d3.schemeTableau10[2])
+            .attr('stroke-width', 3)
+            .attr("class", "mutation")
+            .attr('marker-start', 'url(#arrow)')
+            .attr('marker-end', 'url(#arrow)')
+            .attr('fill', 'none');
+
+    }
+    function makeLocationMatrix(){
+        const width = 200
+        const margin =50
+        const letterPadding=25
+        const svg = d3.select("#transition-location").append('svg').attr('width',width).attr("height",width);
+        const arrowSize = 0.5
+        const markerBoxWidth = arrowSize*10;
+        const markerBoxHeight = arrowSize*10;
+        const refX = markerBoxWidth / 2;
+        const refY = markerBoxHeight / 2;
+        const  arrowPoints = [[0, 0], [0, arrowSize*10], [arrowSize*10, arrowSize*5]];
+
+        const data = [{base:"FL",pos:[margin,width/2]},
+            {base:"NY",pos:[width-margin,width/2]},
+           ]
+        const lines = [
+            [[margin+letterPadding,width/2],[width-margin-letterPadding,width/2]], //A->G
+        ];
+
+        svg
+            .append('defs')
+            .append('marker')
+            .attr('id', 'arrow2')
+            .attr('viewBox', [0, 0, markerBoxWidth, markerBoxHeight])
+            .attr('refX', refX)
+            .attr('refY', refY)
+            .attr('markerWidth', markerBoxWidth)
+            .attr('markerHeight', markerBoxHeight)
+            .attr('orient', 'auto-start-reverse')
+            .append('path')
+            .attr('d', d3.line()(arrowPoints))
+            .attr('stroke', "none")
+            .attr('fill', d3.schemeTableau10[2]);
+
+
+        svg.selectAll("text")
+            .data(data)
+            .enter().append("text")
+            .attr("text-anchor","middle")
+            .attr("alignment-baseline","middle")
+            .attr("x",d=>d.pos[0])
+            .attr("y",d=>d.pos[1])
+            .text(d=>d.base)
+
+        svg.selectAll(".mutation")
+            .data(lines)
+            .enter().append('path')
+            .attr('d', (d,i)=> d3.line()([d[0],d[1]]))
+            .attr('stroke', d3.schemeTableau10[2])
+            .attr('stroke-width', 3)
+            .attr("class", "mutation")
+            .attr('marker-start', 'url(#arrow2)')
+            .attr('marker-end', 'url(#arrow2)')
+            .attr('fill', 'none');
+
+    }
+
+
+    function makeTree(){
+
+    const ratio = 1600/700;
+    const width = 1600/4,
+        height = width/ratio;
+    const svg =  d3.select(document.getElementById("tree"))
+        .append("svg")
+        .attr("class","figure")
+        .attr("id","example-plot")
+        // .attr("width",width)
+        // .attr("height",height)
+        .attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", `0 0 ${width} ${height}`);
+    return new FigTree(document.getElementById("example-plot"), margins, tree, {width, height})
+        .layout(equalAngleLayout(tree.root))
+        .nodes(circle()
+                .filter(v => !v.children)
+                .attr("r",10)
+                .attr("fill", v=>v.annotations.text? fillScale(v.annotations.text):"steelblue")
+                .attr("stroke-width", 2)
+                .attr("stroke", v => "grey"),
+            tipLabel(d => d.annotations.text? `${d.annotations.text}`:d.name),
+            internalNodeLabel(d => d.annotations.text? `${d.annotations.text}`:"")
+        )
+        .branches(branch()
+            .attr("stroke-width", 2)
+            .attr("stroke", e => e.v1.annotations.hover ? d3.schemeTableau10[2] : "grey")
+            .attr("cursor", "pointer")
+            .curve(d3.curveBasis)
+        );
+
+}
+
+    const labelNodes=(i)=>{
+            tree.externalNodes.forEach((node, j) => {
+                tree.annotateNode(node, {text: seqs[j].seq[i]});
+            });
+            tree.annotateNode(tree.getExternalNode("2").parent, {text: "[A,T,C,G]"});
+    tree.treeUpdateCallback()
+    }
+
+    const clearLabels=(i)=>{
+        tree.nodes.forEach((node,j)=>{
+            tree.annotateNode(node,{text:" "});
+        });
+        tree.treeUpdateCallback()
+    }
+
+    const makeTransition=(i)=>{
+        return {
+            transitionForward: () => {
+                d3.selectAll(`.column-${i}`).classed("highlight",false);
+                d3.selectAll(`.column-${i+1}`).classed("highlight",true);
+                labelNodes(i);
+            },
+            transitionBackward:()=>{
+                if(i>0){
+                    d3.selectAll(`.column-${i}`).classed("highlight",true);
+                }
+                d3.selectAll(`.column-${i+1}`).classed("highlight",false);
+                labelNodes(i-1)
+            }
+        }
+    }
+
+
+    const alignmentTransitions = d3.range(9).map(d=>makeTransition(d));
+    const showTree = {
+        transitionForward: () => {
+          d3.select("#tree").classed("hidden",false)
+        },
+        transitionBackward:()=>{
+            d3.select("#tree").classed("hidden",true)
+        }
+    };
+
+    const revealGeography ={
+        transitionForward: () => {
+            d3.selectAll(".column-9").classed("highlight",false)
+            d3.selectAll(".column-10").classed("hidden",false)
+            d3.selectAll(".column-10").classed("highlight",true)
+            d3.select("#base-matrix").classed("hidden",true);
+            d3.select("#location-matrix").classed("hidden",false);
+
+            tree.nodes.forEach((node, j) => {
+                tree.annotateNode(node, {text: node.annotations.location});
+            });
+            tree.treeUpdateCallback()
+        },
+        transitionBackward:()=>{
+            d3.selectAll(".column-9").classed("highlight",true)
+            d3.selectAll(".column-10").classed("hidden",true)
+            d3.selectAll(".column-10").classed("highlight",false)
+            d3.select("#base-matrix").classed("hidden",false);
+            d3.select("#location-matrix").classed("hidden",true);
+            labelNodes(9);
+        }
+    }
+    window._transitions = [showTree, ...alignmentTransitions,revealGeography];
+</script>
+
+</body>
+</html>
